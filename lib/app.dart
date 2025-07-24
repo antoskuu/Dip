@@ -182,8 +182,9 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.only(bottom: 18.0, left: 16, right: 16),
+        height: 70,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
@@ -193,13 +194,13 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(32),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(32),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                   width: 1,
@@ -208,6 +209,7 @@ class _MainNavigationState extends State<MainNavigation> {
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
+                iconSize: 30,
                 selectedItemColor: Theme.of(context).colorScheme.primary,
                 unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 currentIndex: _selectedIndex,
@@ -220,19 +222,19 @@ class _MainNavigationState extends State<MainNavigation> {
                 selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
                 unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
                 items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.map_rounded),
-                    label: 'Carte',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_rounded),
-                    label: 'Profil',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.star_rounded),
-                    label: 'À venir',
-                  ),
-                ],
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.map_rounded),
+                  label: 'Carte',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_rounded),
+                  label: 'Profil',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.star_rounded),
+                  label: 'À venir',
+                ),
+              ],
               ),
             ),
           ),

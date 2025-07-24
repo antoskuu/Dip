@@ -90,11 +90,12 @@ class _MapPageState extends State<MapPage> {
           options: MapOptions(
             initialCenter: dips.isNotEmpty
                 ? LatLng(dips.last.latitude, dips.last.longitude)
-                : const LatLng(45.75, 4.85),
-            initialZoom: 6.5,
+                : const LatLng(54.5260, 15.2551), // centre de l'Europe
+            initialZoom: dips.isNotEmpty ? 6.5 : 3.5, // zoom plus large pour voir toute l'Europe
             onTap: (tapPosition, point) {
               setState(() => _addDipLocation = point);
             },
+            interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
           ),
           children: [
             TileLayer(
@@ -341,19 +342,24 @@ class _MapPageState extends State<MapPage> {
                           width: 1,
                         ),
                       ),
-                      child: FloatingActionButton(
-                        heroTag: 'center_gps',
-                        onPressed: _isLocating ? null : _centerOnUser,
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.blue[700],
-                        elevation: 0,
-                        child: _isLocating
-                            ? const SizedBox(
-                                width: 24, 
-                                height: 24, 
-                                child: CircularProgressIndicator(strokeWidth: 2)
-                              )
-                            : const Icon(Icons.my_location, size: 26),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: _isLocating ? null : _centerOnUser,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            alignment: Alignment.center,
+                            child: _isLocating
+                                ? const SizedBox(
+                                    width: 24, 
+                                    height: 24, 
+                                    child: CircularProgressIndicator(strokeWidth: 2)
+                                  )
+                                : Icon(Icons.my_location, size: 26, color: Colors.blue[700]),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -384,11 +390,11 @@ class _MapPageState extends State<MapPage> {
                           width: 1,
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: FloatingActionButton.extended(
-                          heroTag: 'center_last',
-                          onPressed: () async {
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () async {
                             if (dips.isNotEmpty) {
                               _mapController.move(
                                 LatLng(dips.last.latitude, dips.last.longitude),
@@ -398,13 +404,24 @@ class _MapPageState extends State<MapPage> {
                               _mapController.move(const LatLng(45.75, 4.85), 10.0);
                             }
                           },
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          icon: const Icon(Icons.place, size: 20),
-                          label: const Text(
-                            'Dernier Dip',
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.place, size: 20, color: Colors.white),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Dernier Dip',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
