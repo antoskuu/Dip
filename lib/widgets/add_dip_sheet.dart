@@ -57,11 +57,11 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
   void _showSuccessFeedback() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
-            const SizedBox(width: 12),
-            const Text('Dip ajouté avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
+            Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
+            SizedBox(width: 12),
+            Text('Dip ajouté avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: Colors.blue[700],
@@ -82,16 +82,27 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white,
+                Colors.blue[50]!.withValues(alpha: 0.3),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                blurRadius: 16,
-                offset: Offset(0, -4),
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, -8),
               ),
             ],
+            border: Border.all(
+              color: Colors.blue[100]!.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: SingleChildScrollView(
@@ -103,12 +114,17 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                 children: [
                   Center(
                     child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
+                      width: 50,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.grey[300]!,
+                            Colors.grey[400]!,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
@@ -116,7 +132,8 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                     'Ajouter un Dip',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
+                          color: Colors.blue[800],
+                          letterSpacing: 0.5,
                         ),
                   ),
                   const SizedBox(height: 18),
@@ -129,12 +146,26 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                         width: double.infinity,
                         height: 160,
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blue[50]!,
+                              Colors.blue[100]!.withValues(alpha: 0.7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: Colors.blue[200]!,
-                            width: 1.5,
+                            width: 2,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: _picking
                             ? const Center(child: CircularProgressIndicator())
@@ -229,7 +260,9 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                                 );
                                 _showSuccessFeedback();
                                 Future.delayed(const Duration(milliseconds: 900), () {
-                                  Navigator.of(context).pop(dip);
+                                  if (mounted) {
+                                    Navigator.of(context).pop(dip);
+                                  }
                                 });
                               }
                             },

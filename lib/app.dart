@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'pages/map_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/placeholder_page.dart';
@@ -8,11 +9,9 @@ final ColorScheme dipColorScheme = ColorScheme.fromSeed(
   primary: const Color(0xFF2196F3),
   secondary: const Color(0xFF64B5F6),
   surface: const Color(0xFFE3F2FD),
-  background: const Color(0xFFF7F9FB),
   onPrimary: Colors.white,
   onSecondary: Colors.white,
   onSurface: const Color(0xFF0D47A1),
-  onBackground: const Color(0xFF1976D2),
   brightness: Brightness.light,
 );
 
@@ -21,11 +20,9 @@ final ColorScheme dipDarkColorScheme = ColorScheme.fromSeed(
   primary: const Color(0xFF1976D2),
   secondary: const Color(0xFF64B5F6),
   surface: const Color(0xFF102840),
-  background: const Color(0xFF0A1929),
   onPrimary: Colors.white,
   onSecondary: Colors.white,
   onSurface: Colors.white,
-  onBackground: Colors.white,
   brightness: Brightness.dark,
 );
 
@@ -46,7 +43,7 @@ class DipApp extends StatelessWidget {
             colorScheme: dipColorScheme,
             useMaterial3: true,
             fontFamily: 'Montserrat',
-            scaffoldBackgroundColor: dipColorScheme.background,
+            scaffoldBackgroundColor: const Color(0xFFF7F9FB),
             appBarTheme: AppBarTheme(
               backgroundColor: dipColorScheme.primary,
               foregroundColor: Colors.white,
@@ -67,7 +64,7 @@ class DipApp extends StatelessWidget {
               ),
             ),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
-              backgroundColor: Colors.white.withOpacity(0.95),
+              backgroundColor: Colors.white.withValues(alpha: 0.95),
               selectedItemColor: dipColorScheme.primary,
               unselectedItemColor: dipColorScheme.secondary,
               showUnselectedLabels: true,
@@ -75,9 +72,9 @@ class DipApp extends StatelessWidget {
             ),
             sliderTheme: SliderThemeData(
               activeTrackColor: dipColorScheme.primary,
-              inactiveTrackColor: dipColorScheme.secondary.withOpacity(0.3),
+              inactiveTrackColor: dipColorScheme.secondary.withValues(alpha: 0.3),
               thumbColor: dipColorScheme.primary,
-              overlayColor: dipColorScheme.primary.withOpacity(0.1),
+              overlayColor: dipColorScheme.primary.withValues(alpha: 0.1),
             ),
             inputDecorationTheme: InputDecorationTheme(
               focusedBorder: OutlineInputBorder(
@@ -97,7 +94,7 @@ class DipApp extends StatelessWidget {
             colorScheme: dipDarkColorScheme,
             useMaterial3: true,
             fontFamily: 'Montserrat',
-            scaffoldBackgroundColor: dipDarkColorScheme.background,
+            scaffoldBackgroundColor: const Color(0xFF0A1929),
             appBarTheme: AppBarTheme(
               backgroundColor: dipDarkColorScheme.primary,
               foregroundColor: Colors.white,
@@ -118,7 +115,7 @@ class DipApp extends StatelessWidget {
               ),
             ),
             bottomNavigationBarTheme: BottomNavigationBarThemeData(
-              backgroundColor: dipDarkColorScheme.surface.withOpacity(0.95),
+              backgroundColor: dipDarkColorScheme.surface.withValues(alpha: 0.95),
               selectedItemColor: dipDarkColorScheme.primary,
               unselectedItemColor: dipDarkColorScheme.secondary,
               showUnselectedLabels: true,
@@ -126,9 +123,9 @@ class DipApp extends StatelessWidget {
             ),
             sliderTheme: SliderThemeData(
               activeTrackColor: dipDarkColorScheme.primary,
-              inactiveTrackColor: dipDarkColorScheme.secondary.withOpacity(0.3),
+              inactiveTrackColor: dipDarkColorScheme.secondary.withValues(alpha: 0.3),
               thumbColor: dipDarkColorScheme.primary,
-              overlayColor: dipDarkColorScheme.primary.withOpacity(0.1),
+              overlayColor: dipDarkColorScheme.primary.withValues(alpha: 0.1),
             ),
             inputDecorationTheme: InputDecorationTheme(
               focusedBorder: OutlineInputBorder(
@@ -183,36 +180,61 @@ class _MainNavigationState extends State<MainNavigation> {
         duration: const Duration(milliseconds: 350),
         child: _pages[_selectedIndex],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 18.0, left: 16, right: 16),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(bottom: 18.0, left: 16, right: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
-          child: BottomNavigationBar(
-            backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-            elevation: 8,
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Theme.of(context).colorScheme.secondary,
-            currentIndex: _selectedIndex,
-            onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            type: BottomNavigationBarType.fixed,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.map_rounded),
-                label: 'Carte',
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_rounded),
-                label: 'Profil',
+              child: BottomNavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                selectedItemColor: Theme.of(context).colorScheme.primary,
+                unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                currentIndex: _selectedIndex,
+                onTap: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                type: BottomNavigationBarType.fixed,
+                selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.map_rounded),
+                    label: 'Carte',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person_rounded),
+                    label: 'Profil',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.star_rounded),
+                    label: 'À venir',
+                  ),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.star_rounded),
-                label: 'À venir',
-              ),
-            ],
+            ),
           ),
         ),
       ),

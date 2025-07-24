@@ -45,7 +45,7 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
             builder: (context, child) => BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8 * _opacityAnim.value, sigmaY: 8 * _opacityAnim.value),
               child: Container(
-                color: Colors.black.withOpacity(0.13 * _opacityAnim.value),
+                color: Colors.black.withValues(alpha: 0.13 * _opacityAnim.value),
               ),
             ),
           ),
@@ -67,7 +67,7 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                     opacity: _opacityAnim.value,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.97),
+                        color: Colors.white.withValues(alpha: 0.97),
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
                         boxShadow: const [
                           BoxShadow(

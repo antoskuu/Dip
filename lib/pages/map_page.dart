@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:ui';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
 import '../widgets/add_dip_sheet.dart';
@@ -69,7 +70,9 @@ class _MapPageState extends State<MapPage> {
     }
     if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
       setState(() => _isLocating = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permission de localisation refusée.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permission de localisation refusée.')));
+      }
       return;
     }
     final pos = await Geolocator.getCurrentPosition();
@@ -85,10 +88,10 @@ class _MapPageState extends State<MapPage> {
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            center: dips.isNotEmpty
+            initialCenter: dips.isNotEmpty
                 ? LatLng(dips.last.latitude, dips.last.longitude)
-                : LatLng(45.75, 4.85),
-            zoom: 6.5,
+                : const LatLng(45.75, 4.85),
+            initialZoom: 6.5,
             onTap: (tapPosition, point) {
               setState(() => _addDipLocation = point);
             },
@@ -107,7 +110,7 @@ class _MapPageState extends State<MapPage> {
                   width: 70,
                   height: 70,
                   point: LatLng(dip.latitude, dip.longitude),
-                  builder: (ctx) => Center(
+                  child: Center(
                     child: AnimatedScale(
                       scale: isBouncing ? 1.25 : 1.0,
                       duration: const Duration(milliseconds: 180),
@@ -116,29 +119,82 @@ class _MapPageState extends State<MapPage> {
                         onTap: () => _onTapDip(dip, idx),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white,
+                                Colors.blue[50]!,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(18),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.10),
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
-                            border: Border.all(color: Colors.blue[100]!, width: 2),
+                            border: Border.all(
+                              color: Colors.blue[200]!,
+                              width: 2,
+                            ),
                           ),
                           padding: const EdgeInsets.all(4),
                           child: dip.photoPath != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Image.file(
-                                    File(dip.photoPath!),
-                                    width: 48,
-                                    height: 48,
-                                    fit: BoxFit.cover,
-                                  ),
+                              ? Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: Image.file(
+                                        File(dip.photoPath!),
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(14),
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.blue.withValues(alpha: 0.1),
+                                          ],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 )
-                              : Icon(Icons.place, color: Colors.blue[400], size: 38),
+                              : Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(14),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.blue[100]!,
+                                        Colors.blue[200]!,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.water_drop_rounded,
+                                    color: Colors.blue[600],
+                                    size: 26,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -150,22 +206,38 @@ class _MapPageState extends State<MapPage> {
                   width: 60,
                   height: 60,
                   point: _addDipLocation!,
-                  builder: (ctx) => Center(
+                  child: Center(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.blue, width: 2),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue[100]!,
+                            Colors.blue[200]!,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.blue[400]!, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.15),
-                            blurRadius: 12,
-                            offset: const Offset(0, 2),
+                            color: Colors.blue.withValues(alpha: 0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(Icons.add_location_alt_rounded, color: Colors.blue, size: 36),
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.add_location_alt_rounded,
+                        color: Colors.blue[700],
+                        size: 32,
+                      ),
                     ),
                   ),
                 )
@@ -179,17 +251,60 @@ class _MapPageState extends State<MapPage> {
             left: 0,
             right: 0,
             child: Center(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  elevation: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                icon: const Icon(Icons.add),
-                label: const Text('Ajouter un Dip ici'),
-                onPressed: () => _onAddDip(_addDipLocation!),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue[600]!.withValues(alpha: 0.95),
+                            Colors.blue[800]!.withValues(alpha: 0.95),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.add_location_alt_rounded, size: 24),
+                        label: const Text(
+                          'Ajouter un Dip ici',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        onPressed: () => _onAddDip(_addDipLocation!),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -201,32 +316,97 @@ class _MapPageState extends State<MapPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FloatingActionButton(
-                heroTag: 'center_gps',
-                onPressed: _isLocating ? null : _centerOnUser,
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.blue[700],
-                child: _isLocating
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.my_location),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: FloatingActionButton(
+                        heroTag: 'center_gps',
+                        onPressed: _isLocating ? null : _centerOnUser,
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.blue[700],
+                        elevation: 0,
+                        child: _isLocating
+                            ? const SizedBox(
+                                width: 24, 
+                                height: 24, 
+                                child: CircularProgressIndicator(strokeWidth: 2)
+                              )
+                            : const Icon(Icons.my_location, size: 26),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
-              FloatingActionButton.extended(
-                heroTag: 'center_last',
-                onPressed: () async {
-                  if (dips.isNotEmpty) {
-                    _mapController.move(
-                      LatLng(dips.last.latitude, dips.last.longitude),
-                      12.0,
-                    );
-                  } else {
-                    _mapController.move(LatLng(45.75, 4.85), 10.0);
-                  }
-                },
-                icon: const Icon(Icons.place),
-                label: const Text('Dernier Dip'),
-                backgroundColor: Colors.blue[700],
-                foregroundColor: Colors.white,
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.blue[700]!.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.blue[300]!.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: FloatingActionButton.extended(
+                        heroTag: 'center_last',
+                        onPressed: () async {
+                          if (dips.isNotEmpty) {
+                            _mapController.move(
+                              LatLng(dips.last.latitude, dips.last.longitude),
+                              12.0,
+                            );
+                          } else {
+                            _mapController.move(const LatLng(45.75, 4.85), 10.0);
+                          }
+                        },
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        icon: const Icon(Icons.place, size: 20),
+                        label: const Text(
+                          'Dernier Dip',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
