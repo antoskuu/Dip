@@ -1,7 +1,7 @@
 # Dip - Carte des baignades
 
 Application qui répertorie les endroits où on s'est baignés.
-
+jso
 On a une carte, et on peut ajouter jn endroit où l'on s'est baigné. On peut ajouter une photo, une note et une description etc.
 
 
