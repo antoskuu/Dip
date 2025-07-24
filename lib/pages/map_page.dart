@@ -312,9 +312,10 @@ class _MapPageState extends State<MapPage> {
           const Center(child: CircularProgressIndicator()),
         Positioned(
           bottom: 32,
-          right: 32,
+          right: 16,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
                 decoration: BoxDecoration(
@@ -383,25 +384,28 @@ class _MapPageState extends State<MapPage> {
                           width: 1,
                         ),
                       ),
-                      child: FloatingActionButton.extended(
-                        heroTag: 'center_last',
-                        onPressed: () async {
-                          if (dips.isNotEmpty) {
-                            _mapController.move(
-                              LatLng(dips.last.latitude, dips.last.longitude),
-                              12.0,
-                            );
-                          } else {
-                            _mapController.move(const LatLng(45.75, 4.85), 10.0);
-                          }
-                        },
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        icon: const Icon(Icons.place, size: 20),
-                        label: const Text(
-                          'Dernier Dip',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: FloatingActionButton.extended(
+                          heroTag: 'center_last',
+                          onPressed: () async {
+                            if (dips.isNotEmpty) {
+                              _mapController.move(
+                                LatLng(dips.last.latitude, dips.last.longitude),
+                                12.0,
+                              );
+                            } else {
+                              _mapController.move(const LatLng(45.75, 4.85), 10.0);
+                            }
+                          },
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          icon: const Icon(Icons.place, size: 20),
+                          label: const Text(
+                            'Dernier Dip',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ),

@@ -76,207 +76,205 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white,
-                Colors.blue[50]!.withValues(alpha: 0.3),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 24,
+                  offset: const Offset(0, -8),
+                ),
               ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 24,
-                offset: const Offset(0, -8),
+              border: Border.all(
+                color: Colors.grey[300]!,
+                width: 1,
               ),
-            ],
-            border: Border.all(
-              color: Colors.blue[100]!.withValues(alpha: 0.5),
-              width: 1,
             ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 50,
-                      height: 5,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.grey[300]!,
-                            Colors.grey[400]!,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    'Ajouter un Dip',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                          letterSpacing: 0.5,
-                        ),
-                  ),
-                  const SizedBox(height: 18),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: _picking ? null : _pickImage,
-                      child: Ink(
-                        width: double.infinity,
-                        height: 160,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 50,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 20),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue[50]!,
-                              Colors.blue[100]!.withValues(alpha: 0.7),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.blue[200]!,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: _picking
-                            ? const Center(child: CircularProgressIndicator())
-                            : _imageFile != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.file(_imageFile!, fit: BoxFit.cover, width: double.infinity, height: 160),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_a_photo_rounded, color: Colors.blue[400], size: 38),
-                                      const SizedBox(height: 8),
-                                      Text('Ajouter une photo', style: TextStyle(color: Colors.blue)),
-                                    ],
-                                  ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom du lieu',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Nom requis' : null,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _descController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      const Text('Note :'),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Slider(
-                          value: _rating.toDouble(),
-                          min: 1,
-                          max: 5,
-                          divisions: 4,
-                          label: _rating.toString(),
-                          onChanged: (value) {
-                            setState(() {
-                              _rating = value.toInt();
-                            });
-                          },
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      Text('$_rating/5'),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Center(
-                    child: GestureDetector(
-                      onTapDown: (_) => _buttonController.forward(),
-                      onTapUp: (_) => _buttonController.reverse(),
-                      onTapCancel: () => _buttonController.reverse(),
-                      child: ScaleTransition(
-                        scale: _buttonScale,
-                        child: SizedBox(
+                    ),
+                    Text(
+                      'Ajouter un Dip',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800],
+                            letterSpacing: 0.5,
+                          ),
+                    ),
+                    const SizedBox(height: 18),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: _picking ? null : _pickImage,
+                        child: Ink(
                           width: double.infinity,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[700],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                          height: 160,
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.blue[200]!,
+                              width: 2,
                             ),
-                            icon: const Icon(Icons.check),
-                            label: const Text('Ajouter'),
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                final dip = Dip(
-                                  name: _nameController.text,
-                                  description: _descController.text,
-                                  latitude: widget.location.latitude,
-                                  longitude: widget.location.longitude,
-                                  rating: _rating,
-                                  date: DateTime.now(),
-                                  photoPath: _imageFile?.path,
-                                );
-                                _showSuccessFeedback();
-                                Future.delayed(const Duration(milliseconds: 900), () {
-                                  if (mounted) {
-                                    Navigator.of(context).pop(dip);
-                                  }
-                                });
-                              }
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: _picking
+                              ? const Center(child: CircularProgressIndicator())
+                              : _imageFile != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.file(_imageFile!, fit: BoxFit.cover, width: double.infinity, height: 160),
+                                    )
+                                  : Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.add_a_photo_rounded, color: Colors.blue[600], size: 38),
+                                        const SizedBox(height: 8),
+                                        Text('Ajouter une photo', style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.w500)),
+                                      ],
+                                    ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    TextFormField(
+                      controller: _nameController,
+                      style: TextStyle(color: Colors.grey[800]),
+                      decoration: InputDecoration(
+                        labelText: 'Nom du lieu',
+                        labelStyle: TextStyle(color: Colors.grey[600]),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                        ),
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Nom requis' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _descController,
+                      style: TextStyle(color: Colors.grey[800]),
+                      decoration: InputDecoration(
+                        labelText: 'Description',
+                        labelStyle: TextStyle(color: Colors.grey[600]),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                        ),
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Text('Note :', style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w500)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Slider(
+                            value: _rating.toDouble(),
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            label: _rating.toString(),
+                            activeColor: Colors.blue[600],
+                            onChanged: (value) {
+                              setState(() {
+                                _rating = value.toInt();
+                              });
                             },
                           ),
                         ),
+                        Text('$_rating/5', style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Center(
+                      child: GestureDetector(
+                        onTapDown: (_) => _buttonController.forward(),
+                        onTapUp: (_) => _buttonController.reverse(),
+                        onTapCancel: () => _buttonController.reverse(),
+                        child: ScaleTransition(
+                          scale: _buttonScale,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[700],
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.check),
+                              label: const Text('Ajouter'),
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  final dip = Dip(
+                                    name: _nameController.text,
+                                    description: _descController.text,
+                                    latitude: widget.location.latitude,
+                                    longitude: widget.location.longitude,
+                                    rating: _rating,
+                                    date: DateTime.now(),
+                                    photoPath: _imageFile?.path,
+                                  );
+                                  _showSuccessFeedback();
+                                  Future.delayed(const Duration(milliseconds: 900), () {
+                                    if (mounted) {
+                                      Navigator.of(context).pop(dip);
+                                    }
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24), // Espace supplémentaire pour le clavier
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
