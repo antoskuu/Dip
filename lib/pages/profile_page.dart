@@ -71,15 +71,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      // Ajout d'un bouton de rafraîchissement pour mettre à jour les stats
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _loadStats();
-          });
-        },
-        child: const Icon(Icons.refresh),
-      ),
       body: SafeArea(
         child: ValueListenableBuilder<UserStats?>(
           valueListenable: UserStatsService.instance.statsNotifier,
