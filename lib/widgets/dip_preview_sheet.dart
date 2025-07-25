@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
 import '../utils/temperature_utils.dart';
+import '../services/user_stats_service.dart';
 import 'add_dip_sheet.dart';
 import 'edit_dip_sheet.dart';
 import 'package:latlong2/latlong.dart';
@@ -42,6 +43,8 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
   Future<void> _onDelete() async {
     if (widget.dip.id == null) return;
     await DipDatabase.instance.deleteDip(widget.dip.id!);
+    await UserStatsService.instance.decrementDips();
+    await UserStatsService.instance.addXP(-25);
     if (mounted) Navigator.of(context).pop('deleted');
   }
 

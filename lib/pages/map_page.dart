@@ -46,6 +46,16 @@ class _MapPageState extends State<MapPage> {
       'url': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       'attribution': '© Esri, Maxar, Earthstar Geographics',
     },
+    {
+      'name': 'Light',
+      'url': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      'attribution': '© CartoDB, OpenStreetMap contributors',
+    },
+    {
+      'name': 'Dark',
+      'url': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      'attribution': '© CartoDB, OpenStreetMap contributors',
+    },
   ];
 
   late FocusNode _searchFocusNode;
@@ -195,6 +205,7 @@ class _MapPageState extends State<MapPage> {
               urlTemplate: _mapStyles[_currentMapStyleIndex]['url']!,
               subdomains: const ['a', 'b', 'c'],
               userAgentPackageName: 'com.example.dip_app',
+              retinaMode: true,
             ),
             if (_addDipLocation != null)
               MarkerLayer(

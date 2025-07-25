@@ -3,6 +3,9 @@ import 'package:path/path.dart';
 import '../models/user_stats.dart';
 
 class UserStatsService {
+  // Notifier to broadcast stats updates across the app
+  final ValueNotifier<UserStats?> statsNotifier = ValueNotifier<UserStats?>(null);
+
   static final UserStatsService instance = UserStatsService._init();
   static Database? _database;
 
@@ -33,10 +36,13 @@ class UserStatsService {
   }
 
   Future<UserStats> getStats() async {
+    if (statsNotifier.value != null) return statsNotifier.value!;
     final db = await instance.database;
     final maps = await db.query('user_stats', where: 'id = ?', whereArgs: [1]);
     if (maps.isNotEmpty) {
-      return UserStats.fromMap(maps.first);
+      final stats = UserStats.fromMap(maps.first);
+    statsNotifier.value = stats;
+    return stats;
     } else {
       // This should not happen if _createDB is correct
       return UserStats(xp: 0, dipsCount: 0);
@@ -51,17 +57,25 @@ class UserStatsService {
       where: 'id = ?',
       whereArgs: [1],
     );
+    statsNotifier.value = stats;
   }
 
   Future<void> addXP(int amount) async {
     final stats = await getStats();
     stats.xp += amount;
+    if (stats.xp < 0) stats.xp = 0;
     await updateStats(stats);
   }
 
   Future<void> incrementDips() async {
     final stats = await getStats();
     stats.dipsCount += 1;
+    await updateStats(stats);
+  }
+
+  Future<void> decrementDips() async {
+    final stats = await getStats();
+    if (stats.dipsCount > 0) stats.dipsCount -= 1;
     await updateStats(stats);
   }
 

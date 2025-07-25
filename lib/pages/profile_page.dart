@@ -65,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   : themeModeNotifier.value == ThemeMode.light
                       ? Icons.light_mode_rounded
                       : Icons.brightness_auto_rounded,
+              color: Theme.of(context).colorScheme.primary,
             ),
             onPressed: _showThemeModeSelector,
           ),
@@ -80,19 +81,13 @@ class _ProfilePageState extends State<ProfilePage> {
         child: const Icon(Icons.refresh),
       ),
       body: SafeArea(
-        child: FutureBuilder<UserStats>(
-          future: _statsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+        child: ValueListenableBuilder<UserStats?>(
+          valueListenable: UserStatsService.instance.statsNotifier,
+          builder: (context, stats, _) {
+            if (stats == null) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (!snapshot.hasData || snapshot.hasError) {
-              return Center(
-                child: Text(snapshot.hasError
-                    ? 'Erreur: ${snapshot.error}'
-                    : 'Aucune donnée de profil.'));
-            }
-            final stats = snapshot.data!;
+
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
