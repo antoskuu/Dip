@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/dip.dart';
+import '../utils/temperature_utils.dart';
+import 'package:latlong2/latlong.dart';
 import '../services/user_stats_service.dart';
 
 class AddDipSheet extends StatefulWidget {
@@ -309,8 +310,6 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
   }
 
   Widget _buildTemperatureSelector() {
-    final List<String> emojis = ['🥶', '❄️', '😊', '☀️', '🔥'];
-    final List<String> labels = ['Glaciale', 'Froide', 'Bonne', 'Chaude', 'Brûlante'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,10 +319,10 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(5, (index) {
-            return Column(
-              children: [
-                IconButton(
-                  icon: Text(emojis[index], style: const TextStyle(fontSize: 28)),
+          return Column(
+            children: [
+              IconButton(
+                icon: Text(TemperatureUtils.temperatureEmojis[index], style: const TextStyle(fontSize: 28)),
                   style: IconButton.styleFrom(
                     backgroundColor: _temperature == index + 1 ? Theme.of(context).colorScheme.primary.withOpacity(0.2) : Colors.transparent,
                   ),
@@ -333,7 +332,7 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                     });
                   },
                 ),
-                Text(labels[index], style: Theme.of(context).textTheme.bodySmall)
+                Text(TemperatureUtils.temperatureLabels[index], style: Theme.of(context).textTheme.bodySmall)
               ],
             );
           }),

@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'dart:ui';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
+import '../utils/localization.dart';
 import '../widgets/add_dip_sheet.dart';
 import '../widgets/dip_preview_sheet.dart';
 import 'dart:io';
@@ -26,6 +27,26 @@ class _MapPageState extends State<MapPage> {
   int? _bouncingMarkerIndex;
   LatLng? _addDipLocation;
   bool _isLocating = false;
+
+  // Map style management
+  int _currentMapStyleIndex = 0;
+  final List<Map<String, String>> _mapStyles = [
+    {
+      'name': 'Standard',
+      'url': 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'attribution': '© OpenStreetMap contributors',
+    },
+    {
+      'name': 'Topo',
+      'url': 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+      'attribution': '© OpenTopoMap contributors',
+    },
+    {
+      'name': 'Satellite',
+      'url': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      'attribution': '© Esri, Maxar, Earthstar Geographics',
+    },
+  ];
 
   late FocusNode _searchFocusNode;
 
@@ -48,14 +69,14 @@ class _MapPageState extends State<MapPage> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ville non trouvée.')),
+            SnackBar(content: Text(AppLocalizations.of(context)?.cityNotFound ?? 'Ville non trouvée.')),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de la recherche.')),
+          SnackBar(content: Text(AppLocalizations.of(context)?.searchError ?? 'Erreur lors de la recherche.')),
         );
       }
     }
@@ -96,6 +117,13 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  void _toggleMapStyle() {
+    setState(() {
+      _currentMapStyleIndex = (_currentMapStyleIndex + 1) % _mapStyles.length;
+
+    });
+  }
+
   Future<void> _centerOnUser() async {
     setState(() => _isLocating = true);
     LocationPermission permission = await Geolocator.checkPermission();
@@ -105,7 +133,7 @@ class _MapPageState extends State<MapPage> {
     if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
       setState(() => _isLocating = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permission de localisation refusée.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)?.locationPermissionDenied ?? 'Permission de localisation refusée.')));
       }
       return;
     }
@@ -164,7 +192,8 @@ class _MapPageState extends State<MapPage> {
               ),
               children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: _mapStyles[_currentMapStyleIndex]['url']!,
+              subdomains: const ['a', 'b', 'c'],
               userAgentPackageName: 'com.example.dip_app',
             ),
             if (_addDipLocation != null)
@@ -269,23 +298,37 @@ class _MapPageState extends State<MapPage> {
           top: MediaQuery.of(context).padding.top + 10,
           left: 16,
           right: 16,
-          child: Material(
-            elevation: 4,
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(32),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(32),
-              ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.blue.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
               child: TextField(
                 focusNode: _searchFocusNode,
                 controller: _searchController,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
                 decoration: InputDecoration(
-                  hintText: 'Rechercher une ville...',
-                  prefixIcon: const Icon(Icons.search),
+                  hintText: AppLocalizations.of(context)?.searchCity ?? 'Rechercher une ville...',
+                  hintStyle: TextStyle(
+                    color: Colors.black.withOpacity(0.6),
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: Colors.black.withOpacity(0.7)),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: Icon(Icons.clear, color: Colors.black.withOpacity(0.7)),
                           onPressed: () {
                             _searchController.clear();
                           },
@@ -300,6 +343,7 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
         ),
+      ),
         if (_loading)
           const Center(child: CircularProgressIndicator()),
         if (!_loading)
@@ -309,6 +353,12 @@ class _MapPageState extends State<MapPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                FloatingActionButton(
+                  heroTag: 'toggle_layers',
+                  onPressed: _toggleMapStyle,
+                  child: const Icon(Icons.layers),
+                ),
+                const SizedBox(height: 12),
                 FloatingActionButton(
                   heroTag: 'center_on_user',
                   onPressed: _centerOnUser,
@@ -339,7 +389,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.add_location_alt),
-                    label: const Text('Ajouter ce dip'),
+                    label: Text(AppLocalizations.of(context)?.addThisDip ?? 'Ajouter ce dip'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,

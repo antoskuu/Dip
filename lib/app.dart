@@ -198,10 +198,10 @@ class _MainNavigationState extends State<MainNavigation> {
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+                color: Colors.blue.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  color: Colors.blue.withOpacity(0.3),
                   width: 1,
                 ),
               ),

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
+import '../utils/temperature_utils.dart';
 import 'add_dip_sheet.dart';
 import 'edit_dip_sheet.dart';
 import 'package:latlong2/latlong.dart';
@@ -19,6 +20,8 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
   late AnimationController _controller;
   late Animation<double> _scaleAnim;
   late Animation<double> _opacityAnim;
+
+
 
   void _showFullScreenPhoto() {
     if (widget.dip.photoPath == null) return;
@@ -177,22 +180,38 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                                         textAlign: TextAlign.left,
                                       ),
                                       const SizedBox(height: 6),
-                                      Row(
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          // Affichage étoiles
+                                          // Première ligne: étoiles et température
                                           Row(
-                                            children: List.generate(5, (i) => Icon(
-                                              i < widget.dip.rating ? Icons.star_rounded : Icons.star_border_rounded,
-                                              color: Colors.amber[600],
-                                              size: 22,
-                                            )),
+                                            children: [
+                                              // Affichage étoiles
+                                              Row(
+                                                children: List.generate(5, (i) => Icon(
+                                                  i < widget.dip.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                                                  color: Colors.amber[600],
+                                                  size: 22,
+                                                )),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                TemperatureUtils.getTemperatureEmoji(widget.dip.temperature),
+                                                style: const TextStyle(fontSize: 20),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 12),
-                                          Icon(Icons.calendar_today_rounded, size: 18, color: Colors.grey[400]),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${widget.dip.date.day.toString().padLeft(2, '0')}/${widget.dip.date.month.toString().padLeft(2, '0')}/${widget.dip.date.year}',
-                                            style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                          const SizedBox(height: 8),
+                                          // Deuxième ligne: date
+                                          Row(
+                                            children: [
+                                              Icon(Icons.calendar_today_rounded, size: 18, color: Colors.grey[400]),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '${widget.dip.date.day.toString().padLeft(2, '0')}/${widget.dip.date.month.toString().padLeft(2, '0')}/${widget.dip.date.year}',
+                                                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),

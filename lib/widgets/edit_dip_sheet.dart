@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
+import '../utils/temperature_utils.dart';
+import 'package:latlong2/latlong.dart';
 import '../services/user_stats_service.dart';
 
 class EditDipSheet extends StatefulWidget {
@@ -301,13 +302,6 @@ class _EditDipSheetState extends State<EditDipSheet> with SingleTickerProviderSt
   }
 
   Widget _buildTemperatureSelector() {
-    final List<Map<String, dynamic>> temps = [
-      {'label': 'Glaciale', 'icon': '🥶'},
-      {'label': 'Froide', 'icon': '😨'},
-      {'label': 'Bonne', 'icon': '😊'},
-      {'label': 'Chaude', 'icon': '🥵'},
-      {'label': 'Brûlante', 'icon': '🔥'},
-    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,10 +323,10 @@ class _EditDipSheetState extends State<EditDipSheet> with SingleTickerProviderSt
                       color: isSelected ? Colors.blue.withOpacity(0.15) : Colors.transparent,
                       shape: BoxShape.circle,
                     ),
-                    child: Text(temps[index]['icon'], style: const TextStyle(fontSize: 26)),
+                    child: Text(TemperatureUtils.temperatureEmojis[index], style: const TextStyle(fontSize: 26)),
                   ),
                   const SizedBox(height: 4),
-                  Text(temps[index]['label'], style: Theme.of(context).textTheme.bodySmall?.copyWith(color: isSelected ? Colors.blue[700] : Colors.grey[600])),
+                  Text(TemperatureUtils.temperatureLabels[index], style: Theme.of(context).textTheme.bodySmall?.copyWith(color: isSelected ? Colors.blue[700] : Colors.grey[600])),
                 ],
               ),
             );
