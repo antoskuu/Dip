@@ -6,7 +6,8 @@ import '../models/dip.dart';
 
 class AddDipSheet extends StatefulWidget {
   final LatLng location;
-  const AddDipSheet({super.key, required this.location});
+  final Dip? dip;
+  const AddDipSheet({super.key, required this.location, this.dip});
 
   @override
   State<AddDipSheet> createState() => _AddDipSheetState();
@@ -25,6 +26,14 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
+    if (widget.dip != null) {
+      _nameController.text = widget.dip!.name;
+      _descController.text = widget.dip!.description;
+      _rating = widget.dip!.rating;
+      if (widget.dip!.photoPath != null) {
+        _imageFile = File(widget.dip!.photoPath!);
+      }
+    }
     _buttonController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
@@ -246,12 +255,13 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   final dip = Dip(
+                                    id: widget.dip?.id,
                                     name: _nameController.text,
                                     description: _descController.text,
                                     latitude: widget.location.latitude,
                                     longitude: widget.location.longitude,
                                     rating: _rating,
-                                    date: DateTime.now(),
+                                    date: widget.dip?.date ?? DateTime.now(),
                                     photoPath: _imageFile?.path,
                                   );
                                   _showSuccessFeedback();

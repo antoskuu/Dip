@@ -8,6 +8,8 @@ import '../services/dip_database.dart';
 import '../widgets/add_dip_sheet.dart';
 import '../widgets/dip_preview_sheet.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:exif/exif.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -23,6 +25,8 @@ class _MapPageState extends State<MapPage> {
   int? _bouncingMarkerIndex;
   LatLng? _addDipLocation;
   bool _isLocating = false;
+  bool _isImporting = false;
+  String? _importStatus;
 
   @override
   void initState() {
@@ -54,12 +58,15 @@ class _MapPageState extends State<MapPage> {
     setState(() => _bouncingMarkerIndex = index);
     await Future.delayed(const Duration(milliseconds: 180));
     setState(() => _bouncingMarkerIndex = null);
-    showModalBottomSheet(
+    final result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => DipPreviewSheet(dip: dip),
     );
+    if (result == 'deleted' || result == 'updated') {
+      _loadDips();
+    }
   }
 
   Future<void> _centerOnUser() async {
@@ -79,6 +86,151 @@ class _MapPageState extends State<MapPage> {
     final latLng = LatLng(pos.latitude, pos.longitude);
     _mapController.move(latLng, 13.0);
     setState(() => _isLocating = false);
+  }
+
+  Future<void> _importPhotos() async {
+    setState(() {
+      _isImporting = true;
+      _importStatus = 'Analyse de l\'image...';
+    });
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) {
+        setState(() {
+          _isImporting = false;
+          _importStatus = null;
+        });
+        return;
+      }
+      final path = picked.path;
+      final bytes = await File(path).readAsBytes();
+      Map<String, IfdTag> tags = {};
+      try {
+        tags = await readExifFromBytes(bytes).timeout(const Duration(seconds: 8));
+      } catch (e) {
+        setState(() {
+          _isImporting = false;
+          _importStatus = 'Erreur lors de l\'analyse des métadonnées.';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur lors de l\'analyse des métadonnées EXIF.')),
+          );
+        }
+        await Future.delayed(const Duration(seconds: 2));
+        setState(() {
+          _importStatus = null;
+        });
+        return;
+      }
+      double? lat;
+      double? lng;
+      DateTime? date;
+      String? name;
+      // Extraction géoloc
+      if (tags.containsKey('GPS GPSLatitude') && tags.containsKey('GPS GPSLongitude')) {
+        var latVals = tags['GPS GPSLatitude']!.values.toList();
+        var lngVals = tags['GPS GPSLongitude']!.values.toList();
+        double toDouble(dynamic v) {
+          if (v is Ratio) return v.numerator / v.denominator;
+          if (v is num) return v.toDouble();
+          return double.tryParse(v.toString()) ?? double.nan;
+        }
+        double latDeg = toDouble(latVals[0]);
+        double latMin = toDouble(latVals[1]);
+        double latSec = toDouble(latVals[2]);
+        double lngDeg = toDouble(lngVals[0]);
+        double lngMin = toDouble(lngVals[1]);
+        double lngSec = toDouble(lngVals[2]);
+        lat = latDeg + latMin / 60 + latSec / 3600;
+        lng = lngDeg + lngMin / 60 + lngSec / 3600;
+        if (tags['GPS GPSLatitudeRef']?.printable == 'S') lat = -lat;
+        if (tags['GPS GPSLongitudeRef']?.printable == 'W') lng = -lng;
+      }
+      // Extraction date
+      if (tags.containsKey('Image DateTime')) {
+        try {
+          final dateStr = tags['Image DateTime']!.printable;
+          final fixed = dateStr.replaceFirst(':', '-', 4).replaceFirst(':', '-', 7);
+          date = DateTime.parse(fixed);
+        } catch (_) {}
+      }
+      // Extraction nom du lieu (si possible)
+      name = tags['Image ImageDescription']?.printable ?? picked.name.split('.').first;
+      bool latValid = lat != null && lat.isFinite && !lat.isNaN;
+      bool lngValid = lng != null && lng.isFinite && !lng.isNaN;
+      if (latValid && lngValid) {
+        final dip = Dip(
+          name: (name != null && name.trim().isNotEmpty) ? name : 'Lieu de la photo',
+          description: '',
+          latitude: lat,
+          longitude: lng,
+          rating: 3,
+          date: date ?? DateTime.now(),
+          photoPath: path.isNotEmpty ? path : null,
+        );
+        try {
+          await DipDatabase.instance.createDip(dip);
+          await _loadDips();
+          setState(() {
+            _isImporting = false;
+            _importStatus = 'Dip ajouté avec succès à partir de la photo.';
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Import terminé.')),
+            );
+          }
+          await Future.delayed(const Duration(seconds: 2));
+          setState(() {
+            _importStatus = null;
+          });
+        } catch (e) {
+          setState(() {
+            _isImporting = false;
+            _importStatus = 'Erreur lors de l\'enregistrement dans la base.';
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erreur SQLite :\n$e')),
+            );
+          }
+          await Future.delayed(const Duration(seconds: 2));
+          setState(() {
+            _importStatus = null;
+          });
+        }
+      } else {
+        setState(() {
+          _isImporting = false;
+          _importStatus = 'Aucune géolocalisation valide trouvée dans la photo.';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Aucune géolocalisation valide trouvée dans la photo.')),
+          );
+        }
+        await Future.delayed(const Duration(seconds: 2));
+        setState(() {
+          _importStatus = null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isImporting = false;
+        _importStatus = 'Erreur inattendue lors de l\'import.';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur inattendue lors de l\'import :\n$e')),
+        );
+      }
+      await Future.delayed(const Duration(seconds: 2));
+      setState(() {
+        _importStatus = null;
+      });
+    }
   }
 
   @override
@@ -312,7 +464,7 @@ class _MapPageState extends State<MapPage> {
         if (_loading)
           const Center(child: CircularProgressIndicator()),
         Positioned(
-          bottom: 32,
+          bottom: 104,
           right: 16,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -346,18 +498,14 @@ class _MapPageState extends State<MapPage> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: _isLocating ? null : _centerOnUser,
+                          onTap: _isImporting ? null : _importPhotos,
                           child: Container(
                             width: 56,
                             height: 56,
                             alignment: Alignment.center,
-                            child: _isLocating
-                                ? const SizedBox(
-                                    width: 24, 
-                                    height: 24, 
-                                    child: CircularProgressIndicator(strokeWidth: 2)
-                                  )
-                                : Icon(Icons.my_location, size: 26, color: Colors.blue[700]),
+                            child: _isImporting
+                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                                : Icon(Icons.photo_library_rounded, size: 26, color: Colors.blue[700]),
                           ),
                         ),
                       ),
@@ -365,6 +513,25 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
               ),
+              if (_importStatus != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.07),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(_importStatus!, style: TextStyle(color: Colors.blue[900], fontWeight: FontWeight.w500)),
+                  ),
+                ),
               const SizedBox(height: 16),
               Container(
                 decoration: BoxDecoration(

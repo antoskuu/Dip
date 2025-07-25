@@ -2,6 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/dip.dart';
+import '../services/dip_database.dart';
+import 'add_dip_sheet.dart';
+import 'package:latlong2/latlong.dart';
 
 class DipPreviewSheet extends StatefulWidget {
   final Dip dip;
@@ -15,6 +18,44 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
   late AnimationController _controller;
   late Animation<double> _scaleAnim;
   late Animation<double> _opacityAnim;
+
+  void _showFullScreenPhoto() {
+    if (widget.dip.photoPath == null) return;
+    showDialog(
+      context: context,
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Container(
+          color: Colors.black,
+          child: Center(
+            child: Image.file(File(widget.dip.photoPath!)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onDelete() async {
+    if (widget.dip.id == null) return;
+    await DipDatabase.instance.deleteDip(widget.dip.id!);
+    if (mounted) Navigator.of(context).pop('deleted');
+  }
+
+  Future<void> _onEdit() async {
+    final result = await showModalBottomSheet<Dip>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddDipSheet(
+        location: LatLng(widget.dip.latitude, widget.dip.longitude),
+        dip: widget.dip,
+      ),
+    );
+    if (result != null) {
+      await DipDatabase.instance.updateDip(result);
+      if (mounted) Navigator.of(context).pop('updated');
+    }
+  }
 
   @override
   void initState() {
@@ -100,13 +141,16 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                                 Hero(
                                   tag: 'dip_${widget.dip.id ?? widget.dip.name}_${widget.dip.latitude}_${widget.dip.longitude}',
                                   child: widget.dip.photoPath != null
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(20),
-                                          child: Image.file(
-                                            File(widget.dip.photoPath!),
-                                            width: 90,
-                                            height: 90,
-                                            fit: BoxFit.cover,
+                                      ? GestureDetector(
+                                          onTap: _showFullScreenPhoto,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(20),
+                                            child: Image.file(
+                                              File(widget.dip.photoPath!),
+                                              width: 90,
+                                              height: 90,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         )
                                       : Container(
@@ -135,9 +179,14 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          Icon(Icons.star_rounded, color: Colors.amber[600], size: 22),
-                                          const SizedBox(width: 4),
-                                          Text('${widget.dip.rating}/5', style: const TextStyle(fontWeight: FontWeight.w600)),
+                                          // Affichage étoiles
+                                          Row(
+                                            children: List.generate(5, (i) => Icon(
+                                              i < widget.dip.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                                              color: Colors.amber[600],
+                                              size: 22,
+                                            )),
+                                          ),
                                           const SizedBox(width: 12),
                                           Icon(Icons.calendar_today_rounded, size: 18, color: Colors.grey[400]),
                                           const SizedBox(width: 4),
@@ -171,6 +220,34 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                                   textAlign: TextAlign.center,
                                 ),
                               ),
+                            const SizedBox(height: 18),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[700],
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.edit),
+                                label: const Text('Modifier'),
+                                onPressed: _onEdit,
+                              ),
+                              const SizedBox(width: 16),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red[700],
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                icon: const Icon(Icons.delete),
+                                label: const Text('Supprimer'),
+                                onPressed: _onDelete,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
                           ],
                         ),
                       ),

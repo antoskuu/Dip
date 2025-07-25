@@ -20,8 +20,7 @@ class Dip {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'name': name,
       'description': description,
       'latitude': latitude,
@@ -30,6 +29,10 @@ class Dip {
       'photoPath': photoPath,
       'date': date.toIso8601String(),
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   factory Dip.fromMap(Map<String, dynamic> map) {
