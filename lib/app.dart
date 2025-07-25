@@ -38,7 +38,7 @@ class DipApp extends StatelessWidget {
       builder: (context, mode, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Dip - Carte des baignades',
+          title: 'Splash - Carte des baignades',
           theme: ThemeData(
             colorScheme: dipColorScheme,
             useMaterial3: true,

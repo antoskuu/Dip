@@ -1,4 +1,4 @@
-# dip_app
+# splash_app
 
 A new Flutter project.
 

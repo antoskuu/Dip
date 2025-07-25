@@ -74,7 +74,7 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
           children: [
             Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
             SizedBox(width: 12),
-            Text('Dip ajouté avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Splash ajouté avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: Colors.blue[700],
@@ -134,7 +134,7 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                       ),
                     ),
                     Text(
-                      'Ajouter un Dip',
+                      'Ajouter un Splash',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue[800],

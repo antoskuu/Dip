@@ -400,7 +400,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.add_location_alt),
-                    label: Text(AppLocalizations.of(context)?.addThisDip ?? 'Ajouter ce dip'),
+                    label: Text(AppLocalizations.of(context)?.addThisDip ?? 'Ajouter ce splash'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,

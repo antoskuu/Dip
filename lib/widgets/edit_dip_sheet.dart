@@ -75,7 +75,7 @@ class _EditDipSheetState extends State<EditDipSheet> with SingleTickerProviderSt
           children: [
             Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
             SizedBox(width: 12),
-            Text('Dip modifié avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Splash modifié avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: Colors.blue[700],
@@ -135,7 +135,7 @@ class _EditDipSheetState extends State<EditDipSheet> with SingleTickerProviderSt
                       ),
                     ),
                     Text(
-                      'Modifier le Dip',
+                      'Modifier le Splash',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue[800],
