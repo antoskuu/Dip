@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/dip.dart';
 import '../services/dip_database.dart';
 import 'add_dip_sheet.dart';
+import 'edit_dip_sheet.dart';
 import 'package:latlong2/latlong.dart';
 
 class DipPreviewSheet extends StatefulWidget {
@@ -46,13 +47,12 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddDipSheet(
-        location: LatLng(widget.dip.latitude, widget.dip.longitude),
+      builder: (context) => EditDipSheet(
         dip: widget.dip,
       ),
     );
     if (result != null) {
-      await DipDatabase.instance.updateDip(result);
+      // The database update is already handled by the EditDipSheet, so we just pop
       if (mounted) Navigator.of(context).pop('updated');
     }
   }
@@ -202,17 +202,17 @@ class _DipPreviewSheetState extends State<DipPreviewSheet> with SingleTickerProv
                               ],
                             ),
                             const SizedBox(height: 18),
-                            if (widget.dip.description.isNotEmpty)
+                            if (widget.dip.description?.isNotEmpty == true)
                               Center(
                                 child: Text(
-                                  widget.dip.description,
+                                  widget.dip.description!,
                                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.blue[900]),
                                   maxLines: 4,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            if (widget.dip.description.isEmpty)
+                            if (widget.dip.description?.isEmpty ?? true)
                               Center(
                                 child: Text(
                                   'Aucune description',

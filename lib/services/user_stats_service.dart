@@ -1,50 +1,70 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 import '../models/user_stats.dart';
 
 class UserStatsService {
   static final UserStatsService instance = UserStatsService._init();
-  UserStats? _stats;
+  static Database? _database;
 
   UserStatsService._init();
 
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDB('user_stats.db');
+    return _database!;
+  }
+
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+    return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
+
+  Future _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE user_stats(
+        id INTEGER PRIMARY KEY,
+        xp INTEGER NOT NULL,
+        dipsCount INTEGER NOT NULL
+      )
+    ''');
+    // Insert initial stats
+    await db.insert('user_stats', {'id': 1, 'xp': 0, 'dipsCount': 0});
+  }
+
   Future<UserStats> getStats() async {
-    _stats ??= UserStats(
-      xp: 0,
-      dipsCount: 0,
-      dailyChallengeStreak: 0,
-      badges: [],
-      dailyChallenges: [
-        DailyChallenge(description: "Baignade dans un nouveau lieu aujourd'hui !"),
-        DailyChallenge(description: "Ajoute une photo à ton Dip du jour !"),
-      ],
+    final db = await instance.database;
+    final maps = await db.query('user_stats', where: 'id = ?', whereArgs: [1]);
+    if (maps.isNotEmpty) {
+      return UserStats.fromMap(maps.first);
+    } else {
+      // This should not happen if _createDB is correct
+      return UserStats(xp: 0, dipsCount: 0);
+    }
+  }
+
+  Future<void> updateStats(UserStats stats) async {
+    final db = await instance.database;
+    await db.update(
+      'user_stats',
+      stats.toMap(),
+      where: 'id = ?',
+      whereArgs: [1],
     );
-    return _stats!;
   }
 
   Future<void> addXP(int amount) async {
     final stats = await getStats();
     stats.xp += amount;
-  }
-
-  Future<void> addBadge(String badge) async {
-    final stats = await getStats();
-    if (!stats.badges.contains(badge)) {
-      stats.badges.add(badge);
-    }
-  }
-
-  Future<void> completeChallenge(int index) async {
-    final stats = await getStats();
-    if (index >= 0 && index < stats.dailyChallenges.length) {
-      stats.dailyChallenges[index] = DailyChallenge(
-        description: stats.dailyChallenges[index].description,
-        completed: true,
-      );
-    }
+    await updateStats(stats);
   }
 
   Future<void> incrementDips() async {
     final stats = await getStats();
     stats.dipsCount += 1;
-    stats.lastDipDate = DateTime.now();
+    await updateStats(stats);
   }
+
+  // Badges can be stored in a separate table or as a serialized string if needed
+  // For now, we keep it simple
 }

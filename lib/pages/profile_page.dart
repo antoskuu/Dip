@@ -11,23 +11,21 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage> {
   late Future<UserStats> _statsFuture;
-  late AnimationController _xpController;
-  late Animation<double> _xpAnimation;
 
   @override
   void initState() {
     super.initState();
+    _loadStats();
+  }
+
+  void _loadStats() {
     _statsFuture = UserStatsService.instance.getStats();
-    _xpController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _xpAnimation = CurvedAnimation(parent: _xpController, curve: Curves.easeOutBack);
-    _xpController.forward();
   }
 
   @override
   void dispose() {
-    _xpController.dispose();
     super.dispose();
   }
 
@@ -48,122 +46,131 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<UserStats>(
-      future: _statsFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final stats = snapshot.data!;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const CircleAvatar(
-                radius: 48,
-                backgroundImage: AssetImage('assets/avatar_placeholder.png'),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Mon Profil',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                ),
-                icon: Icon(
-                  themeModeNotifier.value == ThemeMode.dark
-                      ? Icons.dark_mode_rounded
-                      : themeModeNotifier.value == ThemeMode.light
-                          ? Icons.light_mode_rounded
-                          : Icons.brightness_auto_rounded,
-                ),
-                label: Text(
-                  themeModeNotifier.value == ThemeMode.dark
-                      ? 'Mode sombre'
-                      : themeModeNotifier.value == ThemeMode.light
-                          ? 'Mode clair'
-                          : 'Mode auto',
-                ),
-                onPressed: _showThemeModeSelector,
-              ),
-              const SizedBox(height: 18),
-              AnimatedBuilder(
-                animation: _xpAnimation,
-                builder: (context, child) {
-                  return Column(
-                    children: [
-                      Text(
-                        'XP',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0, end: stats.xp.toDouble()),
-                        duration: const Duration(milliseconds: 900),
-                        curve: Curves.easeOutBack,
-                        builder: (context, value, child) => Text(
-                          value.toInt().toString(),
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: (stats.xp % 100) / 100,
-                        minHeight: 8,
-                        backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      const SizedBox(height: 8),
-                      Text('Niveau ${(stats.xp ~/ 100) + 1}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Mon Profil',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeModeNotifier.value == ThemeMode.dark
+                  ? Icons.dark_mode_rounded
+                  : themeModeNotifier.value == ThemeMode.light
+                      ? Icons.light_mode_rounded
+                      : Icons.brightness_auto_rounded,
+            ),
+            onPressed: _showThemeModeSelector,
+          ),
+        ],
+      ),
+      // Ajout d'un bouton de rafraîchissement pour mettre à jour les stats
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _loadStats();
+          });
+        },
+        child: const Icon(Icons.refresh),
+      ),
+      body: SafeArea(
+        child: FutureBuilder<UserStats>(
+          future: _statsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.hasError) {
+              return Center(
+                child: Text(snapshot.hasError
+                    ? 'Erreur: ${snapshot.error}'
+                    : 'Aucune donnée de profil.'));
+            }
+            final stats = snapshot.data!;
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _StatCard(
-                    icon: Icons.water_drop_rounded,
-                    label: 'Baignades',
-                    value: stats.dipsCount.toString(),
-                    color: Colors.blue[400]!,
+                  const CircleAvatar(
+                    radius: 48,
+                    backgroundImage: AssetImage('assets/avatar_placeholder.png'),
                   ),
-                  _StatCard(
-                    icon: Icons.local_fire_department_rounded,
-                    label: 'Série défi',
-                    value: stats.dailyChallengeStreak.toString(),
-                    color: Colors.orange[400]!,
+                  const SizedBox(height: 16),
+                  Text('Utilisateur', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 24),
+                  _XpLevelCard(xp: stats.xp),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _StatCard(
+                        icon: Icons.waves,
+                        label: 'Baignades',
+                        value: stats.dipsCount.toString(),
+                        color: Colors.blue,
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
-              const SizedBox(height: 24),
-              _BadgesSection(badges: stats.badges),
-              const SizedBox(height: 24),
-              _ChallengesSection(challenges: stats.dailyChallenges),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _XpLevelCard extends StatelessWidget {
+  final int xp;
+  const _XpLevelCard({required this.xp});
+
+  int get level => (xp / 100).floor() + 1;
+  int get currentLevelXp => (level - 1) * 100;
+  int get nextLevelXp => level * 100;
+  double get progress => (xp - currentLevelXp) / (nextLevelXp - currentLevelXp);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Niveau $level', style: Theme.of(context).textTheme.titleLarge),
+                Text('$xp XP', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('$currentLevelXp XP', style: Theme.of(context).textTheme.bodySmall),
+                Text('$nextLevelXp XP', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 }
@@ -196,72 +203,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _BadgesSection extends StatelessWidget {
-  final List<String> badges;
-  const _BadgesSection({required this.badges});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Badges', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        badges.isEmpty
-            ? Text('Aucun badge débloqué', style: TextStyle(color: Colors.grey[400]))
-            : Wrap(
-                spacing: 10,
-                children: badges
-                    .map((b) => Chip(
-                          label: Text(b),
-                          backgroundColor: Colors.blue[50],
-                          avatar: const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 20),
-                        ))
-                    .toList(),
-              ),
-      ],
-    );
-  }
-}
-
-class _ChallengesSection extends StatelessWidget {
-  final List<DailyChallenge> challenges;
-  const _ChallengesSection({required this.challenges});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Défis du jour', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        ...challenges.map((c) => AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: c.completed ? Colors.green[50] : Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: c.completed ? Colors.green : Colors.blue[200]!,
-                  width: 1.5,
-                ),
-              ),
-              child: ListTile(
-                leading: Icon(
-                  c.completed ? Icons.check_circle_rounded : Icons.flag_rounded,
-                  color: c.completed ? Colors.green : Colors.blue[400],
-                ),
-                title: Text(c.description),
-                trailing: c.completed
-                    ? const Icon(Icons.emoji_events_rounded, color: Colors.amber)
-                    : null,
-              ),
-            )),
-      ],
-    );
-  }
-}
 
 class _ThemeModeSheet extends StatelessWidget {
   final ThemeMode current;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'pages/map_page.dart';
 import 'pages/profile_page.dart';
-import 'pages/placeholder_page.dart';
+
 
 final ColorScheme dipColorScheme = ColorScheme.fromSeed(
   seedColor: const Color(0xFF2196F3),
@@ -168,7 +168,6 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       const MapPage(),
       ProfilePage(onThemeModeChanged: widget.onThemeModeChanged),
-      const PlaceholderPage(),
     ];
   }
 
@@ -230,10 +229,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   icon: Icon(Icons.person_rounded),
                   label: 'Profil',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.star_rounded),
-                  label: 'À venir',
-                ),
+
               ],
               ),
             ),

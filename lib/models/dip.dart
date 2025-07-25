@@ -1,20 +1,22 @@
 class Dip {
   final int? id;
   final String name;
-  final String description;
+  final String? description;
   final double latitude;
   final double longitude;
-  final int rating;
+  final double rating;
+  final int temperature;
   final String? photoPath;
   final DateTime date;
 
   Dip({
     this.id,
     required this.name,
-    required this.description,
+    this.description,
     required this.latitude,
     required this.longitude,
     required this.rating,
+    required this.temperature,
     this.photoPath,
     required this.date,
   });
@@ -26,6 +28,7 @@ class Dip {
       'latitude': latitude,
       'longitude': longitude,
       'rating': rating,
+      'temperature': temperature,
       'photoPath': photoPath,
       'date': date.toIso8601String(),
     };
@@ -42,7 +45,8 @@ class Dip {
       description: map['description'],
       latitude: map['latitude'],
       longitude: map['longitude'],
-      rating: map['rating'],
+      rating: (map['rating'] as num).toDouble(),
+      temperature: map['temperature'] ?? 3, // Default to neutral if not present
       photoPath: map['photoPath'],
       date: DateTime.parse(map['date']),
     );

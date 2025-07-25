@@ -19,8 +19,9 @@ class DipDatabase {
     final path = join(dbPath, filePath);
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -32,11 +33,21 @@ class DipDatabase {
         description TEXT,
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
-        rating INTEGER NOT NULL,
+        rating REAL NOT NULL,
+        temperature INTEGER NOT NULL,
         photoPath TEXT,
         date TEXT NOT NULL
       )
     ''');
+  }
+
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE dips ADD COLUMN temperature INTEGER NOT NULL DEFAULT 3');
+      // SQLite does not support modifying column types directly in a simple way.
+      // For the rating, we'll handle the conversion in the model.
+      // A more robust migration would create a new table and copy data.
+    }
   }
 
   Future<int> createDip(Dip dip) async {

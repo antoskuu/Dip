@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/dip.dart';
+import '../services/user_stats_service.dart';
 
 class AddDipSheet extends StatefulWidget {
   final LatLng location;
@@ -17,7 +18,8 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
-  int _rating = 3;
+  double _rating = 3.0;
+  int _temperature = 3;
   File? _imageFile;
   bool _picking = false;
   late AnimationController _buttonController;
@@ -28,8 +30,9 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
     super.initState();
     if (widget.dip != null) {
       _nameController.text = widget.dip!.name;
-      _descController.text = widget.dip!.description;
+      _descController.text = widget.dip!.description ?? '';
       _rating = widget.dip!.rating;
+      _temperature = widget.dip!.temperature;
       if (widget.dip!.photoPath != null) {
         _imageFile = File(widget.dip!.photoPath!);
       }
@@ -209,28 +212,9 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                       maxLines: 2,
                     ),
                     const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Text('Note :', style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w500)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Slider(
-                            value: _rating.toDouble(),
-                            min: 1,
-                            max: 5,
-                            divisions: 4,
-                            label: _rating.toString(),
-                            activeColor: Colors.blue[600],
-                            onChanged: (value) {
-                              setState(() {
-                                _rating = value.toInt();
-                              });
-                            },
-                          ),
-                        ),
-                        Text('$_rating/5', style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w500)),
-                      ],
-                    ),
+                    _buildRatingStars(),
+                    const SizedBox(height: 18),
+                    _buildTemperatureSelector(),
                     const SizedBox(height: 18),
                     Center(
                       child: GestureDetector(
@@ -252,7 +236,7 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                               ),
                               icon: const Icon(Icons.check),
                               label: const Text('Ajouter'),
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
                                   final dip = Dip(
                                     id: widget.dip?.id,
@@ -261,9 +245,17 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
                                     latitude: widget.location.latitude,
                                     longitude: widget.location.longitude,
                                     rating: _rating,
+                                    temperature: _temperature,
                                     date: widget.dip?.date ?? DateTime.now(),
                                     photoPath: _imageFile?.path,
                                   );
+
+                                  // Add XP and increment dips count if it's a new dip
+                                  if (widget.dip == null) {
+                                    await UserStatsService.instance.addXP(25);
+                                    await UserStatsService.instance.incrementDips();
+                                  }
+
                                   _showSuccessFeedback();
                                   Future.delayed(const Duration(milliseconds: 900), () {
                                     if (mounted) {
@@ -285,6 +277,68 @@ class _AddDipSheetState extends State<AddDipSheet> with SingleTickerProviderStat
           );
         },
       ),
+    );
+  }
+
+  Widget _buildRatingStars() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Note globale', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(5, (index) {
+            final starValue = index + 1;
+            return IconButton(
+              icon: Icon(
+                _rating >= starValue ? Icons.star_rounded : _rating >= starValue - 0.5 ? Icons.star_half_rounded : Icons.star_border_rounded,
+                color: Colors.amber,
+                size: 36,
+              ),
+              onPressed: () {
+                setState(() {
+                  _rating = starValue.toDouble();
+                });
+              },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTemperatureSelector() {
+    final List<String> emojis = ['🥶', '❄️', '😊', '☀️', '🔥'];
+    final List<String> labels = ['Glaciale', 'Froide', 'Bonne', 'Chaude', 'Brûlante'];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Température ressentie', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(5, (index) {
+            return Column(
+              children: [
+                IconButton(
+                  icon: Text(emojis[index], style: const TextStyle(fontSize: 28)),
+                  style: IconButton.styleFrom(
+                    backgroundColor: _temperature == index + 1 ? Theme.of(context).colorScheme.primary.withOpacity(0.2) : Colors.transparent,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _temperature = index + 1;
+                    });
+                  },
+                ),
+                Text(labels[index], style: Theme.of(context).textTheme.bodySmall)
+              ],
+            );
+          }),
+        ),
+      ],
     );
   }
 }

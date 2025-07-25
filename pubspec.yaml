@@ -33,6 +33,7 @@ dependencies:
   flutter_map: any
   latlong2: any
   geolocator: any
+  geocoding: any
   sqflite: any
   path: any
   image_picker: any
